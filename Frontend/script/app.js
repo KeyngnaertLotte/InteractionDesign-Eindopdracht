@@ -20,6 +20,10 @@ const showBooks = async (cat) => {
   // console.log(data.results.books);
   let htmlstring_boek = '';
   for (let book of data.results.books) {
+    const isbn = book.primary_isbn10;
+    getLikes(isbn);
+    console.log(isbn);
+
     htmlstring_boek += `
 	<div class="c-boeken__boek ">
 		<span class="c-info">
@@ -103,7 +107,11 @@ const showBooks = async (cat) => {
     // );
   }
   document.querySelector('.js-boek').innerHTML = htmlstring_boek;
-  listenToClickDislike()
+  listenToClickDislike();
+};
+
+const getLikes = function (id) {
+  handleData(`http://127.0.0.1:5500/api/v1/likesAndDislikes/${id}/`, showLikes);
 };
 
 const listenToClickCategorie = () => {
@@ -130,17 +138,17 @@ const listenToClickCategorie = () => {
 };
 
 const listenToClickDislike = () => {
-  const radiobtn = document.querySelectorAll('.js-like')
-  for (const like of radiobtn){
-    like.addEventListener('click', function(){
-      const book = like.getAttribute('for')
-      const likeDislike = book.slice(-1)
-      const bookisbn10 = book.substring(0, book.length-2)
-      console.log(likeDislike)
-      console.log(bookisbn10)
-    })
+  const radiobtn = document.querySelectorAll('.js-like');
+  for (const like of radiobtn) {
+    like.addEventListener('click', function () {
+      const book = like.getAttribute('for');
+      const likeDislike = book.slice(-1);
+      const bookisbn10 = book.substring(0, book.length - 2);
+      console.log(likeDislike);
+      console.log(bookisbn10);
+    });
   }
-}
+};
 
 const listenToClickTitle = () => {
   const btn = document.querySelector('.js-open');
@@ -168,6 +176,14 @@ let getAPI = async (key, search) => {
   );
   console.log(data);
   return data;
+};
+
+const showLikes = (jsonobject) => {
+  if (jsonobject.constructor == Object) {
+    console.log(jsonobject);
+  } else {
+    console.log('nopeeeee');
+  }
 };
 
 document.addEventListener('DOMContentLoaded', function () {
