@@ -1,6 +1,11 @@
 // const apikey = 't4ALhbGNlcVEGVmwY64Y77I5XEGYfZKL';
 const apikey = 'KetVcJ0XtgS1bIzmzumKbNV3bj6VMEYm';
 
+// const lanIP = `${window.location.hostname}:5500`; 
+const backend_IP = 'http://localhost:5000';
+const backend = backend_IP + '/api/v1';
+const socketio = io(backend_IP);
+
 var showHide = false;
 
 const showCategorieen = async () => {
@@ -21,8 +26,7 @@ const showBooks = async (cat) => {
   let htmlstring_boek = '';
   for (let book of data.results.books) {
     const isbn = book.primary_isbn10;
-    getLikes(isbn);
-    console.log(isbn);
+    socketio.emit('F2B_get_likes', { isbn_nr: isbn });
 
     htmlstring_boek += `
 	<div class="c-boeken__boek ">
@@ -38,7 +42,7 @@ const showBooks = async (cat) => {
 		</span>
 		<span>
     <span class="c-voting">
-              <ul class="o-list">
+              <ul class="o-list" id="${book.primary_isbn10}">
               <li> 
                   <input
                     class="o-hide-accessible c-option"
@@ -46,7 +50,7 @@ const showBooks = async (cat) => {
                     name="${book.primary_isbn10}"
                     id="${book.primary_isbn10}_1"
                   />
-                  <label for="${book.primary_isbn10}_1" class="c-option__symbol js-like">
+                  <label for="${book.primary_isbn10}_1"  class="c-option__symbol js-likeOrDislike">
                     <svg
                       class="c-option__symbol--svg"
                       version="1.1"
@@ -68,7 +72,7 @@ const showBooks = async (cat) => {
                     </svg>
                     <!-- <img src="./img/svg/thumb_up.svg" alt=""> -->
                   </label>
-              123 
+                  <p class="js-like" >123</p> 
                 </li>
                 <li>
                   <input
@@ -77,7 +81,7 @@ const showBooks = async (cat) => {
                     name="${book.primary_isbn10}"
                     id="${book.primary_isbn10}_2"
                   />
-                  <label for="${book.primary_isbn10}_2" class="c-option__symbol js-like">
+                  <label for="${book.primary_isbn10}_2"  class="c-option__symbol js-likeOrDislike">
                     <svg
                       class="c-option__symbol--svg"
                       version="1.1"
@@ -96,7 +100,7 @@ const showBooks = async (cat) => {
                       />
                     </svg>
                   </label>
-                  123
+                  <p class="js-dislike" >123</p>
                 </li>
               </ul>
             </span>
@@ -110,9 +114,13 @@ const showBooks = async (cat) => {
   listenToClickDislike();
 };
 
-const getLikes = function (id) {
-  handleData(`http://127.0.0.1:5500/api/v1/likesAndDislikes/${id}/`, showLikes);
-};
+
+socketio.on('B2F_showLikes', function (message) {
+  // console.log(message)
+  const boek = document.getElementById(message.Id)
+  boek.querySelector('.js-like').innerHTML = message.Likes
+  boek.querySelector('.js-dislike').innerHTML = message.Dislikes
+});
 
 const listenToClickCategorie = () => {
   const buttons = document.querySelectorAll('.js-button');
@@ -137,15 +145,27 @@ const listenToClickCategorie = () => {
   }
 };
 
+const listenToSocket = function () {
+  socketio.on('connect', function () {
+    console.log('Verbonden met socket webserver');
+  });
+}
+
 const listenToClickDislike = () => {
-  const radiobtn = document.querySelectorAll('.js-like');
+  const radiobtn = document.querySelectorAll('.js-likeOrDislike');
   for (const like of radiobtn) {
     like.addEventListener('click', function () {
       const book = like.getAttribute('for');
       const likeDislike = book.slice(-1);
       const bookisbn10 = book.substring(0, book.length - 2);
-      console.log(likeDislike);
-      console.log(bookisbn10);
+      if (likeDislike == 1){
+        socketio.emit('F2B_add_like', { isbn_nr: bookisbn10 });
+        socketio.emit('F2B_get_likes', { isbn_nr: bookisbn10 });
+      }
+      else if (likeDislike == 2){
+        socketio.emit('F2B_add_dislike', { isbn_nr: bookisbn10 });
+        socketio.emit('F2B_get_likes', { isbn_nr: bookisbn10 });
+      }
     });
   }
 };
@@ -174,21 +194,15 @@ let getAPI = async (key, search) => {
   const data = await getData(
     `https://api.nytimes.com/svc/books/v3/lists/${search}.json?api-key=${key}`
   );
-  console.log(data);
+  // console.log(data);
   return data;
 };
 
-const showLikes = (jsonobject) => {
-  if (jsonobject.constructor == Object) {
-    console.log(jsonobject);
-  } else {
-    console.log('nopeeeee');
-  }
-};
 
 document.addEventListener('DOMContentLoaded', function () {
   console.log('📚');
   showCategorieen();
   showBooks('combined-print-and-e-book-fiction');
   listenToClickTitle();
+  listenToSocket();
 });

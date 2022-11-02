@@ -30,11 +30,13 @@ class DataRepository:
         return {'Dislikes': 0, 'Id': isbn, 'Likes': 0}
 
     @staticmethod
-    def updateLike():
+    def updateLike(isbn):
         sql = "UPDATE bookranking SET Likes = Likes + 1 WHERE Id = %s"
-        return Database.execute_sql(sql)
+        params = [isbn]
+        return Database.execute_sql(sql, params)
 
     @staticmethod
-    def updateLike():
+    def updateDislike(isbn):
         sql = "UPDATE bookranking SET Dislikes = Dislikes + 1 WHERE Id = %s"
-        return Database.execute_sql(sql)
+        params = [isbn]
+        return Database.execute_sql(sql, params)

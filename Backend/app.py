@@ -1,33 +1,58 @@
 from repositories.DataRepository import DataRepository
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit, send
+# import threading
 
 
 # Start app
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
 
 
 # Custom endpoint
 endpoint = '/api/v1'
 
+# SOCKET.IO EVENTS
 
-# ROUTES
+
+@socketio.on('connect')
+def initial_connection():
+    print('a new client connnect')
 
 
-@app.route('/', methods=['GET'])
-def get_root():
-    if request.method == 'GET':
-        return "welkom bij het examen Sinksen2022, ga naar het correcte endpoint", 200
+@socketio.on('F2B_get_likes')
+def getLikes(jsonObject):
+    isbn_nr = jsonObject['isbn_nr']
+    insert = DataRepository.readLikes(isbn_nr)
+    if insert:
+        socketio.emit('B2F_showLikes', insert)
+
+
+@socketio.on('F2B_add_like')
+def updateLikes(jsonObject):
+    isbn_nr = jsonObject['isbn_nr']
+    data = DataRepository.updateLike(isbn_nr)
+    print(data)
+    if data > 0:
+        return jsonify(response="Likes van {0} aangepast ".format(isbn_nr)), 200
+    else:
+        return jsonify(error="Isbn {} niet gevonden".format(isbn_nr)), 404
     
+@socketio.on('F2B_add_dislike')
+def updateDislikes(jsonObject):
+    isbn_nr = jsonObject['isbn_nr']
+    data = DataRepository.updateDislike(isbn_nr)
+    print(data)
+    if data > 0:
+        return jsonify(response="Dislikes van {0} aangepast ".format(isbn_nr)), 200
+    else:
+        return jsonify(error="Isbn {} niet gevonden".format(isbn_nr)), 404
     
-@app.route(endpoint + '/likesAndDislikes/<id>/', methods=['GET'])
-def get_likes(id):
-    if request.method == 'GET':
-        s = DataRepository.readLikes(id)
-        return jsonify(s), 200
 
 
 # Start app
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5500, debug=True)
+    # app.run(host="0.0.0.0", port=5500, debug=True)
+    socketio.run(app, host='0.0.0.0', debug=True)
