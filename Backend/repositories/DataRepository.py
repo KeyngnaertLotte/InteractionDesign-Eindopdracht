@@ -19,21 +19,22 @@ class DataRepository:
         return result
 
     @staticmethod
-    def readLikes(isbn):
+    def readLikes(isbn, title):
         sql = "SELECT * from bookranking WHERE Id = %s"
         params = [isbn]
         result = Database.get_one_row(sql, params)
         if result == None:
-            return DataRepository.addBook(isbn)
-        else:
+            return DataRepository.addBook(isbn, title)
+        else: 
+            test = DataRepository.updateName(isbn, title)
             return result
 
     @staticmethod
-    def addBook(isbn):
-        sql1 = "INSERT INTO bookranking(Id, Likes, Dislikes) VALUES (%s, 0, 0);"
-        params = [isbn]
+    def addBook(isbn, title):
+        sql1 = "INSERT INTO bookranking(Id, BookName, Likes, Dislikes) VALUES (%s, %s, 0, 0);"
+        params = [isbn, title]
         Database.execute_sql(sql1, params)
-        return {'Dislikes': 0, 'Id': isbn, 'Likes': 0}
+        return {'Dislikes': 0, 'Id': isbn, 'Title': title, 'Likes': 0}
 
     @staticmethod
     def updateLike(isbn):
@@ -45,4 +46,10 @@ class DataRepository:
     def updateDislike(isbn):
         sql = "UPDATE bookranking SET Dislikes = Dislikes + 1 WHERE Id = %s"
         params = [isbn]
+        return Database.execute_sql(sql, params)
+
+    @staticmethod
+    def updateName(isbn, title):
+        sql = "UPDATE bookranking SET Bookname = %s WHERE Id = %s and Bookname = 'noName'"
+        params = [title, isbn]
         return Database.execute_sql(sql, params)

@@ -1,5 +1,7 @@
-// const apikey = 't4ALhbGNlcVEGVmwY64Y77I5XEGYfZKL';
-const apikey = 'KetVcJ0XtgS1bIzmzumKbNV3bj6VMEYm';
+
+const apikey = 't4ALhbGNlcVEGVmwY64Y77I5XEGYfZKL';
+const apikey2 = 'KetVcJ0XtgS1bIzmzumKbNV3bj6VMEYm';
+const apikey3 = 'c6XgkGJdU2oEmV2ymCc64ukAP1eLpjn2';
 
 // const lanIP = `${window.location.hostname}:5500`;
 const backend_IP = 'http://localhost:5000';
@@ -25,12 +27,13 @@ const showBooks = async (cat) => {
   if (cat != 'Home') {
     document.querySelector('.js-boek').classList.remove('o-hide-boeken');
     document.querySelector('.js-grafiek').classList.add('o-hide-boeken');
-    const data = await getAPI(apikey, cat);
+    const data = await getAPI(apikey2, cat);
     // console.log(data.results.books);
     let htmlstring_boek = '';
     for (let book of data.results.books) {
       const isbn = book.primary_isbn10;
-      socketio.emit('F2B_get_likes', { isbn_nr: isbn });
+      const title = book.title
+      socketio.emit('F2B_get_likes', { isbn_nr: isbn, name: title});
 
       htmlstring_boek += `
 	<div class="c-boeken__boek">
@@ -124,7 +127,7 @@ const showBooks = async (cat) => {
 };
 
 socketio.on('B2F_showLikes', function (message) {
-  // console.log(message)
+  console.log(message)
   const boek = document.getElementById(message.Id);
   boek.querySelector('.js-like').innerHTML = message.Likes;
   boek.querySelector('.js-dislike').innerHTML = message.Dislikes;
@@ -233,10 +236,20 @@ const getAllLikes = function () {
   handleData(backend + `/top/`, generateGraphData);
 };
 
-const generateGraphData = async(jsonobject) =>{
+const generateGraphData = (jsonobject) =>{
   console.log(jsonobject)
+  jsonobject.slice(0, 11).forEach(element =>  getDataGraph(element.Id))
+  
   // const data = await getAPI(apikey, cat);
   // console.log(data)
+}
+
+const getDataGraph = async(Id) =>{
+  console.log(Id)
+  // const name = await getAPIAll(apikey3, Id);
+  // console.log(name.results[0].book_title)
+  // console.log(name.results[0].isbn_nr)
+  
 }
 
 
