@@ -355,11 +355,11 @@ li{
     border-bottom: none;
 }
 
-.c-boeken{
+/* .c-boeken{
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-}
+} */
 
 .c-boeken__boek{
     margin: 10px;
@@ -444,6 +444,11 @@ p.c-auteur {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.c-grafieken{
+    height: 100vh;
+    width: 100vh;
 }
 
 
@@ -710,6 +715,10 @@ input::placeholder {
     display: flex !important;
 }
 
+.o-hide-boeken{
+    display: none !important;
+}
+
 
 .o-list {
     list-style: none;
@@ -765,6 +774,13 @@ input::placeholder {
 
 .c-categorie__button:last-child{
     border-bottom: none;
+}
+
+.c-categorie__button:hover,
+.c-categorie__button:focus,
+.c-categorie__button:active{
+    background-color: #cb997eed;
+    color: #fff;
 }
 
 .c-boeken{

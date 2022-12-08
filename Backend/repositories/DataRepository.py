@@ -13,6 +13,12 @@ class DataRepository:
 
     ##### BookLikes #####
     @staticmethod
+    def readAllLikes():
+        sql = "Select * from bookranking order by likes desc;"
+        result = Database.get_rows(sql)
+        return result
+
+    @staticmethod
     def readLikes(isbn):
         sql = "SELECT * from bookranking WHERE Id = %s"
         params = [isbn]

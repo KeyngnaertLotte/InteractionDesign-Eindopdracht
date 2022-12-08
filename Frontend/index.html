@@ -25,6 +25,7 @@
       crossorigin="anonymous"
     ></script>
     <script src="script/dataHandler.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="./script/app.js"></script>
   </head>
   <body>
@@ -36,7 +37,9 @@
           <h3 class="c-categorie__big">Categories</h3>
           <h3 class="c-categorie__small js-open">Change categories</h3>
           <div class="c-categorie__wrapper js-hide o-hide">
-            <button class="c-categorie__button">Home</button>
+            <button class="c-categorie__button js-button" id="Home">
+              Home
+            </button>
             <span class="c-categorie__wrapper js-categorie">
               <button class="c-categorie__button js-button" id="categorie1">
                 Categorie 1
@@ -129,6 +132,9 @@
               </span>
             </span>
           </div>
+        </span>
+        <span class="c-grafieken js-grafiek">
+          <canvas class="js-graph" width="3" height="1"></canvas>
         </span>
       </span>
     </main>

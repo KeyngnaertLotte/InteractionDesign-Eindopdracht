@@ -22,6 +22,13 @@ def initial_connection():
     print('a new client connnect')
 
 
+@app.route(endpoint + '/top/', methods=['GET'])
+def get_allLikes():
+    if request.method == 'GET':
+        s = DataRepository.readAllLikes()
+        return jsonify(s), 200
+
+
 @socketio.on('F2B_get_likes')
 def getLikes(jsonObject):
     isbn_nr = jsonObject['isbn_nr']
@@ -39,7 +46,8 @@ def updateLikes(jsonObject):
         return jsonify(response="Likes van {0} aangepast ".format(isbn_nr)), 200
     else:
         return jsonify(error="Isbn {} niet gevonden".format(isbn_nr)), 404
-    
+
+
 @socketio.on('F2B_add_dislike')
 def updateDislikes(jsonObject):
     isbn_nr = jsonObject['isbn_nr']
@@ -49,7 +57,6 @@ def updateDislikes(jsonObject):
         return jsonify(response="Dislikes van {0} aangepast ".format(isbn_nr)), 200
     else:
         return jsonify(error="Isbn {} niet gevonden".format(isbn_nr)), 404
-    
 
 
 # Start app

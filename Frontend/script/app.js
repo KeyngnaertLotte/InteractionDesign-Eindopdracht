@@ -1,12 +1,13 @@
 // const apikey = 't4ALhbGNlcVEGVmwY64Y77I5XEGYfZKL';
 const apikey = 'KetVcJ0XtgS1bIzmzumKbNV3bj6VMEYm';
 
-// const lanIP = `${window.location.hostname}:5500`; 
+// const lanIP = `${window.location.hostname}:5500`;
 const backend_IP = 'http://localhost:5000';
 const backend = backend_IP + '/api/v1';
 const socketio = io(backend_IP);
 
 var showHide = false;
+var chart = '';
 
 const showCategorieen = async () => {
   const data = await getAPI(apikey, 'full-overview');
@@ -21,15 +22,18 @@ const showCategorieen = async () => {
 };
 
 const showBooks = async (cat) => {
-  const data = await getAPI(apikey, cat);
-  // console.log(data.results.books);
-  let htmlstring_boek = '';
-  for (let book of data.results.books) {
-    const isbn = book.primary_isbn10;
-    socketio.emit('F2B_get_likes', { isbn_nr: isbn });
+  if (cat != 'Home') {
+    document.querySelector('.js-boek').classList.remove('o-hide-boeken');
+    document.querySelector('.js-grafiek').classList.add('o-hide-boeken');
+    const data = await getAPI(apikey, cat);
+    // console.log(data.results.books);
+    let htmlstring_boek = '';
+    for (let book of data.results.books) {
+      const isbn = book.primary_isbn10;
+      socketio.emit('F2B_get_likes', { isbn_nr: isbn });
 
-    htmlstring_boek += `
-	<div class="c-boeken__boek ">
+      htmlstring_boek += `
+	<div class="c-boeken__boek">
 		<span class="c-info">
 		  <img
 			class="c-cover"
@@ -106,20 +110,24 @@ const showBooks = async (cat) => {
             </span>
 	  </span>
 	  </div>`;
-    // console.log(
-    //   `image: ${book.book_image} \n author: ${book.author} \n title: ${book.title} \n description: ${book.description}`
-    // );
+      // console.log(
+      //   `image: ${book.book_image} \n author: ${book.author} \n title: ${book.title} \n description: ${book.description}`
+      // );
+    }
+    document.querySelector('.js-boek').innerHTML = htmlstring_boek;
+    listenToClickDislike();
   }
-  document.querySelector('.js-boek').innerHTML = htmlstring_boek;
-  listenToClickDislike();
+  else{
+    document.querySelector('.js-boek').classList.add('o-hide-boeken');
+    document.querySelector('.js-grafiek').classList.remove('o-hide-boeken');
+  }
 };
-
 
 socketio.on('B2F_showLikes', function (message) {
   // console.log(message)
-  const boek = document.getElementById(message.Id)
-  boek.querySelector('.js-like').innerHTML = message.Likes
-  boek.querySelector('.js-dislike').innerHTML = message.Dislikes
+  const boek = document.getElementById(message.Id);
+  boek.querySelector('.js-like').innerHTML = message.Likes;
+  boek.querySelector('.js-dislike').innerHTML = message.Dislikes;
 });
 
 const listenToClickCategorie = () => {
@@ -127,7 +135,7 @@ const listenToClickCategorie = () => {
   for (const btn of buttons) {
     btn.addEventListener('click', function () {
       const cat = btn.id;
-      // console.log(btn.innerHTML);
+      console.log('dit is de button:  ' + btn.innerHTML);
       document.querySelector('.js-open').innerHTML = btn.innerHTML;
       showBooks(cat);
       document.querySelector('.js-hide').classList.add('o-hide');
@@ -149,7 +157,7 @@ const listenToSocket = function () {
   socketio.on('connect', function () {
     console.log('Verbonden met socket webserver');
   });
-}
+};
 
 const listenToClickDislike = () => {
   const radiobtn = document.querySelectorAll('.js-likeOrDislike');
@@ -158,11 +166,10 @@ const listenToClickDislike = () => {
       const book = like.getAttribute('for');
       const likeDislike = book.slice(-1);
       const bookisbn10 = book.substring(0, book.length - 2);
-      if (likeDislike == 1){
+      if (likeDislike == 1) {
         socketio.emit('F2B_add_like', { isbn_nr: bookisbn10 });
         socketio.emit('F2B_get_likes', { isbn_nr: bookisbn10 });
-      }
-      else if (likeDislike == 2){
+      } else if (likeDislike == 2) {
         socketio.emit('F2B_add_dislike', { isbn_nr: bookisbn10 });
         socketio.emit('F2B_get_likes', { isbn_nr: bookisbn10 });
       }
@@ -184,6 +191,92 @@ const listenToClickTitle = () => {
   });
 };
 
+const _generateLabels = (amount) => {
+    return new Array(amount)
+      .fill()
+      .map(
+        (_, i) =>
+          `${new Date(
+            new Date().setDate(new Date().getDate() - i),
+          ).toLocaleDateString()}`,
+      )
+      .reverse()
+  }
+  
+const _generateValues = (amount) => {
+return new Array(amount)
+    .fill()
+    .map(() => Math.floor(Math.random() * 1000))
+    .reverse()
+}
+  
+const sampleData = {
+day: {
+    labels: [`${new Date().toLocaleDateString()}`],
+    data: [Math.floor(Math.random() * 1000)],
+},
+week: {
+    labels: _generateLabels(7),
+    data: _generateValues(7),
+},
+month: {
+    labels: _generateLabels(30),
+    data: _generateValues(30),
+},
+year: {
+    labels: _generateLabels(365),
+    data: _generateValues(365),
+},
+}
+
+const getAllLikes = function () {
+  handleData(backend + `/top/`, generateGraphData);
+};
+
+const generateGraphData = async(jsonobject) =>{
+  console.log(jsonobject)
+  // const data = await getAPI(apikey, cat);
+  // console.log(data)
+}
+
+
+const init = function(time){
+    const ctx = document.querySelector('.js-graph');
+
+    const { labels, data } = sampleData['day']
+    
+    chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+        labels: labels,
+        datasets: [{
+            label: `# visitors per day`,
+            data: data,
+            borderWidth: 1
+        }]
+        },
+        options: {
+        scales: {
+            y: {
+            beginAtZero: true
+            }
+        }
+        }
+    });
+
+    
+    if (chart) {
+        console.log(chart)
+        chart.data.labels = labels
+        chart.data.datasets[0].data = data
+      
+        return chart.update()
+    }
+
+}
+
+
+
 const getData = (endpoint) => {
   return fetch(endpoint)
     .then((r) => r.json())
@@ -198,11 +291,20 @@ let getAPI = async (key, search) => {
   return data;
 };
 
+let getAPIAll = async (key, isbn) => {
+  const data = await getData(
+    `https://api.nytimes.com/svc/books/v3/reviews.json?isbn=${isbn}&api-key=${key}`
+  );
+  // console.log(data);
+  return data;
+};
 
 document.addEventListener('DOMContentLoaded', function () {
   console.log('📚');
   showCategorieen();
-  showBooks('combined-print-and-e-book-fiction');
+  showBooks('Home');
   listenToClickTitle();
   listenToSocket();
+  init("day");
+  getAllLikes();
 });
