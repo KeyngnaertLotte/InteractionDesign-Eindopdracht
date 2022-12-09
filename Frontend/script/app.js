@@ -11,6 +11,7 @@ const socketio = io(backend_IP);
 var showHide = false;
 var chart = '';
 
+
 const showCategorieen = async () => {
   const data = await getAPI(apikey, 'full-overview');
   // console.log(data.results.lists);
@@ -31,7 +32,7 @@ const showBooks = async (cat) => {
     // console.log(data.results.books);
     let htmlstring_boek = '';
     for (let book of data.results.books) {
-      const isbn = book.primary_isbn10;
+      const isbn = book.primary_isbn13;
       const title = book.title
       socketio.emit('F2B_get_likes', { isbn_nr: isbn, name: title});
 
@@ -49,15 +50,15 @@ const showBooks = async (cat) => {
 		</span>
 		<span>
     <span class="c-voting">
-              <ul class="o-list" id="${book.primary_isbn10}">
+              <ul class="o-list" id="${book.primary_isbn13}">
               <li> 
                   <input
                     class="o-hide-accessible c-option"
                     type="radio"
-                    name="${book.primary_isbn10}"
-                    id="${book.primary_isbn10}_1"
+                    name="${book.primary_isbn13}"
+                    id="${book.primary_isbn13}_1"
                   />
-                  <label for="${book.primary_isbn10}_1"  class="c-option__symbol js-likeOrDislike">
+                  <label for="${book.primary_isbn13}_1"  class="c-option__symbol js-likeOrDislike">
                     <svg
                       class="c-option__symbol--svg"
                       version="1.1"
@@ -85,10 +86,10 @@ const showBooks = async (cat) => {
                   <input
                     class="o-hide-accessible c-option"
                     type="radio"
-                    name="${book.primary_isbn10}"
-                    id="${book.primary_isbn10}_2"
+                    name="${book.primary_isbn13}"
+                    id="${book.primary_isbn13}_2"
                   />
-                  <label for="${book.primary_isbn10}_2"  class="c-option__symbol js-likeOrDislike">
+                  <label for="${book.primary_isbn13}_2"  class="c-option__symbol js-likeOrDislike">
                     <svg
                       class="c-option__symbol--svg"
                       version="1.1"
@@ -110,6 +111,7 @@ const showBooks = async (cat) => {
                   <p class="js-dislike" >123</p>
                 </li>
               </ul>
+              <div class="line js-line"></div>
             </span>
 	  </span>
 	  </div>`;
@@ -127,7 +129,7 @@ const showBooks = async (cat) => {
 };
 
 socketio.on('B2F_showLikes', function (message) {
-  console.log(message)
+  // console.log(message)
   const boek = document.getElementById(message.Id);
   boek.querySelector('.js-like').innerHTML = message.Likes;
   boek.querySelector('.js-dislike').innerHTML = message.Dislikes;
@@ -165,16 +167,17 @@ const listenToSocket = function () {
 const listenToClickDislike = () => {
   const radiobtn = document.querySelectorAll('.js-likeOrDislike');
   for (const like of radiobtn) {
-    like.addEventListener('click', function () {
+    like.addEventListener('click', async function () {
       const book = like.getAttribute('for');
       const likeDislike = book.slice(-1);
-      const bookisbn10 = book.substring(0, book.length - 2);
+      const bookisbn13 = book.substring(0, book.length - 2);
+      
       if (likeDislike == 1) {
-        socketio.emit('F2B_add_like', { isbn_nr: bookisbn10 });
-        socketio.emit('F2B_get_likes', { isbn_nr: bookisbn10 });
+        socketio.emit('F2B_add_like', { isbn_nr: bookisbn13});
+        socketio.emit('F2B_update_likes', { isbn_nr: bookisbn13});
       } else if (likeDislike == 2) {
-        socketio.emit('F2B_add_dislike', { isbn_nr: bookisbn10 });
-        socketio.emit('F2B_get_likes', { isbn_nr: bookisbn10 });
+        socketio.emit('F2B_add_dislike', { isbn_nr: bookisbn13});
+        socketio.emit('F2B_update_likes', { isbn_nr: bookisbn13});
       }
     });
   }
@@ -183,7 +186,7 @@ const listenToClickDislike = () => {
 const listenToClickTitle = () => {
   const btn = document.querySelector('.js-open');
   btn.addEventListener('click', function () {
-    console.log('helloo');
+    // console.log('helloo');
     if (showHide == false) {
       document.querySelector('.js-hide').classList.remove('o-hide');
       showHide = true;
@@ -194,43 +197,6 @@ const listenToClickTitle = () => {
   });
 };
 
-const _generateLabels = (amount) => {
-    return new Array(amount)
-      .fill()
-      .map(
-        (_, i) =>
-          `${new Date(
-            new Date().setDate(new Date().getDate() - i),
-          ).toLocaleDateString()}`,
-      )
-      .reverse()
-  }
-  
-const _generateValues = (amount) => {
-return new Array(amount)
-    .fill()
-    .map(() => Math.floor(Math.random() * 1000))
-    .reverse()
-}
-  
-const sampleData = {
-day: {
-    labels: [`${new Date().toLocaleDateString()}`],
-    data: [Math.floor(Math.random() * 1000)],
-},
-week: {
-    labels: _generateLabels(7),
-    data: _generateValues(7),
-},
-month: {
-    labels: _generateLabels(30),
-    data: _generateValues(30),
-},
-year: {
-    labels: _generateLabels(365),
-    data: _generateValues(365),
-},
-}
 
 const getAllLikes = function () {
   handleData(backend + `/top/`, generateGraphData);
@@ -238,28 +204,26 @@ const getAllLikes = function () {
 
 const generateGraphData = (jsonobject) =>{
   console.log(jsonobject)
-  jsonobject.slice(0, 11).forEach(element =>  getDataGraph(element.Id))
-  
-  // const data = await getAPI(apikey, cat);
-  // console.log(data)
-}
-
-const getDataGraph = async(Id) =>{
-  console.log(Id)
-  // const name = await getAPIAll(apikey3, Id);
-  // console.log(name.results[0].book_title)
-  // console.log(name.results[0].isbn_nr)
+  console.log(jsonobject.length)
+  const labels = [];
+  const data = []; 
+  for (let i = 0; i < jsonobject.length; i++) {
+    labels[i] = jsonobject[i].BookName ;
+    data[i] = jsonobject[i].Likes
+  }
+  console.log(labels, data)
+  init(labels, data)
   
 }
 
 
-const init = function(time){
+
+const init = function(labels, data){
     const ctx = document.querySelector('.js-graph');
 
-    const { labels, data } = sampleData['day']
     
     chart = new Chart(ctx, {
-        type: 'bar',
+        type: 'doughnut',
         data: {
         labels: labels,
         datasets: [{
@@ -318,6 +282,5 @@ document.addEventListener('DOMContentLoaded', function () {
   showBooks('Home');
   listenToClickTitle();
   listenToSocket();
-  init("day");
   getAllLikes();
 });
