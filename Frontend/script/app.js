@@ -10,18 +10,21 @@ const socketio = io(backend_IP);
 var showHide = false;
 var chart = '';
 var cats = [];
+var books = [];
 
 const showCategorieen = async () => {
   const data = await getAPI(apikey, 'full-overview');
   // console.log(data.results.lists);
   let htmlstring_categorie = '';
   for (let cat of data.results.lists) {
-    cats.push(cat.list_name_encoded);
+    cats.push(`${cat.list_name_encoded}`);
     // console.log(cat);
     htmlstring_categorie += `<button class="c-categorie__button js-button" id="${cat.list_name_encoded}">${cat.display_name}</button>`;
   }
   document.querySelector('.js-categorie').innerHTML = htmlstring_categorie;
   listenToClickCategorie();
+  getAllLikes();
+  
 };
 
 const showBooks = async (cat) => {
@@ -30,11 +33,13 @@ const showBooks = async (cat) => {
     document.querySelector('.js-grafiek').classList.add('o-hide-boeken');
     const data = await getAPI(apikey2, cat);
     // console.log(data.results.books);
+    books = [];
     let htmlstring_boek = '';
     for (let book of data.results.books) {
+      books.push(book)
       const isbn = book.primary_isbn13;
       const title = book.title;
-      socketio.emit('F2B_get_likes', { isbn_nr: isbn, name: title });
+      socketio.emit('F2B_get_likes', { isbn_nr: isbn, name: title, categorie: cat });
 
       htmlstring_boek += `
 	<div class="c-boeken__boek">
@@ -121,6 +126,8 @@ const showBooks = async (cat) => {
     }
     document.querySelector('.js-boek').innerHTML = htmlstring_boek;
     listenToClickDislike();
+    
+    booksPerCat(cat)
   } else {
     document.querySelector('.js-boek').classList.add('o-hide-boeken');
     document.querySelector('.js-grafiek').classList.remove('o-hide-boeken');
@@ -146,6 +153,16 @@ socketio.on('B2F_showLikes', function (message) {
     line.style.setProperty('--likes-width', `${percent}%`);
   }
 });
+
+const booksPerCat = function(cat){
+  console.log(cat)
+  console.log(books)  
+  // primary_isbn13
+  for(let i = 0; i < books.length; i++){
+    console.log(books[i].primary_isbn13)
+    socketio.emit('F2B_add_categorie', { isbn_nr: books[i].primary_isbn13, categorie: cat});
+  }
+}
 
 const listenToClickCategorie = () => {
   const buttons = document.querySelectorAll('.js-button');
@@ -214,13 +231,15 @@ const getAllLikes = function () {
 };
 
 
+
+
 const generateGraphData = async (jsonobject) => {
   // console.log(jsonobject);
-  console.log(cats);
+  // console.log(cats);
   
   for (let x = 0; x < 10; x++) {
-    console.log(cats[x])
-    // const books = await getAPI(apikey3, i);
+    // console.log(cats[x])
+    // const books = await getAPI(apikey3, cats[x]);
     // console.log(books);
   }
   // console.log(jsonobject.length)
@@ -300,6 +319,6 @@ document.addEventListener('DOMContentLoaded', function () {
   showBooks('Home');
   listenToClickTitle();
   listenToSocket();
-  getAllLikes();
+  // getAllLikes();
   // generateGraphData();
 });

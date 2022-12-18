@@ -34,7 +34,8 @@ def getLikes(jsonObject):
     print(jsonObject)
     isbn_nr = jsonObject['isbn_nr']
     title = jsonObject['name']
-    insert = DataRepository.readLikes(isbn_nr, title)
+    cat = jsonObject['categorie']
+    insert = DataRepository.readLikes(isbn_nr, title, cat)
     if insert:
         socketio.emit('B2F_showLikes', insert)
 
@@ -67,6 +68,18 @@ def updateDislikes(jsonObject):
     else:
         return jsonify(error="Isbn {} niet gevonden".format(isbn_nr)), 404
 
+
+@socketio.on('F2B_add_categorie')
+def addCategorie(json):
+    isbn = json['isbn_nr']
+    cat = json['categorie']
+    print(isbn, cat)
+    data = DataRepository.addCat(isbn, cat)
+    if data > 0:
+        return jsonify(response="Cat van {0} aangepast ".format(isbn)), 200
+    else:
+        return jsonify(error="Isbn {} niet gevonden".format(isbn)), 404
+    
 
 # Start app
 if __name__ == '__main__':
