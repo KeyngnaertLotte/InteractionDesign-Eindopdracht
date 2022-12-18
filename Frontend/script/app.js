@@ -18,12 +18,15 @@ const showCategorieen = async () => {
   let htmlstring_categorie = '';
   for (let cat of data.results.lists) {
     cats.push(`${cat.list_name_encoded}`);
-    // console.log(cat);
+    //console.log(cat);
     htmlstring_categorie += `<button class="c-categorie__button js-button" id="${cat.list_name_encoded}">${cat.display_name}</button>`;
   }
   document.querySelector('.js-categorie').innerHTML = htmlstring_categorie;
   listenToClickCategorie();
-  getAllLikes();
+  console.log(cats.length)
+    for(let i = 0; i < cats.length; i++){
+      getAllLikes(cats[i])
+    }
   
 };
 
@@ -127,10 +130,10 @@ const showBooks = async (cat) => {
     document.querySelector('.js-boek').innerHTML = htmlstring_boek;
     listenToClickDislike();
     
-    booksPerCat(cat)
   } else {
     document.querySelector('.js-boek').classList.add('o-hide-boeken');
     document.querySelector('.js-grafiek').classList.remove('o-hide-boeken');
+    
   }
 };
 
@@ -154,15 +157,6 @@ socketio.on('B2F_showLikes', function (message) {
   }
 });
 
-const booksPerCat = function(cat){
-  console.log(cat)
-  console.log(books)  
-  // primary_isbn13
-  for(let i = 0; i < books.length; i++){
-    console.log(books[i].primary_isbn13)
-    socketio.emit('F2B_add_categorie', { isbn_nr: books[i].primary_isbn13, categorie: cat});
-  }
-}
 
 const listenToClickCategorie = () => {
   const buttons = document.querySelectorAll('.js-button');
@@ -226,31 +220,29 @@ const listenToClickTitle = () => {
   });
 };
 
-const getAllLikes = function () {
-  handleData(backend + `/top/`, generateGraphData);
+const getAllLikes = function (cat) {
+  handleData(backend + `/top/${cat}`, generateGraphData);
 };
 
 
 
 
+
 const generateGraphData = async (jsonobject) => {
-  // console.log(jsonobject);
-  // console.log(cats);
+  console.log(jsonobject);
   
-  for (let x = 0; x < 10; x++) {
-    // console.log(cats[x])
-    // const books = await getAPI(apikey3, cats[x]);
-    // console.log(books);
-  }
+
+
+
   // console.log(jsonobject.length)
-  const labels = [];
-  const data = [];
-  for (let i = 0; i < 10; i++) {
-    labels[i] = jsonobject[i].BookName;
-    data[i] = jsonobject[i].Likes;
-  }
-  // console.log(labels, data)
-  init(labels, data);
+  // const labels = [];
+  // const data = [];
+  // for (let i = 0; i < 10; i++) {
+  //   labels[i] = jsonobject[i].BookName;
+  //   data[i] = jsonobject[i].Likes;
+  // }
+  // // console.log(labels, data)
+  // init(labels, data);
 };
 
 const init = function (labels, data) {

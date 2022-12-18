@@ -13,10 +13,12 @@ class DataRepository:
 
     ##### BookLikes #####
     @staticmethod
-    def readAllLikes():
-        sql = "Select * from bookranking order by likes desc;"
-        result = Database.get_rows(sql)
+    def readAllLikes(cat):
+        sql = "Select * from bookranking where Categorie = %s order by likes desc;"
+        params = [cat]
+        result = Database.get_rows(sql, params)
         return result
+    
 
     @staticmethod
     def readLikes(isbn, title, cat):
@@ -68,8 +70,4 @@ class DataRepository:
         params = [isbn, title]
         return Database.execute_sql(sql, params)
     
-    # @staticmethod
-    # def addCat(isbn, cat):
-    #     sql = "UPDATE bookranking SET Categorie = %s WHERE Id = %s"
-    #     params = [cat, isbn]
-    #     return Database.execute_sql(sql, params)
+    
