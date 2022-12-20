@@ -1,5 +1,6 @@
 from pickletools import read_string1
 from .Database import Database
+import random
 
 
 class DataRepository:
@@ -22,8 +23,8 @@ class DataRepository:
 
     @staticmethod
     def readLikes(isbn, title, cat):
-        sql = "SELECT * from bookranking WHERE Id = %s"
-        params = [isbn]
+        sql = "SELECT * from bookranking WHERE BookName = %s"
+        params = [title]
         result = Database.get_one_row(sql, params)
         if result == None:
             return DataRepository.addBook(isbn, title, cat)
@@ -53,20 +54,20 @@ class DataRepository:
         return {'Dislikes': 0, 'Id': isbn, 'Title': title, 'Likes': 0}
 
     @staticmethod
-    def updateLike(isbn):
-        sql = "UPDATE bookranking SET Likes = Likes + 1 WHERE Id = %s"
-        params = [isbn]
+    def updateLike(title):
+        sql = "UPDATE bookranking SET Likes = Likes + 1 WHERE BookName = %s"
+        params = [title]
         return Database.execute_sql(sql, params)
 
     @staticmethod
-    def updateDislike(isbn):
-        sql = "UPDATE bookranking SET Dislikes = Dislikes + 1 WHERE Id = %s"
-        params = [isbn]
+    def updateDislike(title):
+        sql = "UPDATE bookranking SET Dislikes = Dislikes + 1 WHERE BookName = %s"
+        params = [title]
         return Database.execute_sql(sql, params)
 
     @staticmethod
     def updateName(isbn, title):
-        sql = "UPDATE bookranking SET Id = %s WHERE Bookname = %s"
+        sql = "UPDATE bookranking SET Id = %s WHERE BookName = %s"
         params = [isbn, title]
         return Database.execute_sql(sql, params)
     

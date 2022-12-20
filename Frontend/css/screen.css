@@ -458,12 +458,22 @@ p.c-auteur {
 
 .c-grafieken{
     height: 100%;
+    width: 50%;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.c-group-grafieken{
     width: 100%;
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     align-items: center;
 }
-
 
 .line {
     background:red;
@@ -776,8 +786,8 @@ input::placeholder {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 30%;
-    overflow-y: auto;
+    width: 300px;
+    /* overflow-y: auto; */
     height: 80vh;
 }
 

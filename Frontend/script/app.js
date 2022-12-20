@@ -23,10 +23,10 @@ const showCategorieen = async () => {
   }
   document.querySelector('.js-categorie').innerHTML = htmlstring_categorie;
   listenToClickCategorie();
-  console.log(cats.length)
-    for(let i = 0; i < cats.length; i++){
-      getAllLikes(cats[i])
-    }
+  // console.log(cats.length)
+  //   for(let i = 0; i < cats.length; i++){
+  //     getAllLikes(cats[i])
+  //   }
   
 };
 
@@ -35,13 +35,18 @@ const showBooks = async (cat) => {
     document.querySelector('.js-boek').classList.remove('o-hide-boeken');
     document.querySelector('.js-grafiek').classList.add('o-hide-boeken');
     const data = await getAPI(apikey2, cat);
-    // console.log(data.results.books);
+    console.log(data.results.books);
     books = [];
     let htmlstring_boek = '';
     for (let book of data.results.books) {
       books.push(book)
-      const isbn = book.primary_isbn13;
+      var isbn = book.primary_isbn10;
       const title = book.title;
+      if (isbn == ""){
+        console.log(book.primary_isbn13)
+        isbn = book.primary_isbn13;
+      }
+      
       socketio.emit('F2B_get_likes', { isbn_nr: isbn, name: title, categorie: cat });
 
       htmlstring_boek += `
@@ -57,16 +62,16 @@ const showBooks = async (cat) => {
 		  <p>${book.description}</p>
 		</span>
 		<span>
-    <span class="c-voting" id="${book.primary_isbn13}">
+    <span class="c-voting" id="${book.title}">
               <ul class="o-list" ">
               <li> 
                   <input
                     class="o-hide-accessible c-option"
                     type="radio"
-                    name="${book.primary_isbn13}"
-                    id="${book.primary_isbn13}_1"
+                    name="${book.primary_isbn10}"
+                    id="${book.title}_1"
                   />
-                  <label for="${book.primary_isbn13}_1"  class="c-option__symbol js-likeOrDislike">
+                  <label for="${book.title}_1"  class="c-option__symbol js-likeOrDislike">
                     <svg
                       class="c-option__symbol--svg"
                       version="1.1"
@@ -94,10 +99,10 @@ const showBooks = async (cat) => {
                   <input
                     class="o-hide-accessible c-option"
                     type="radio"
-                    name="${book.primary_isbn13}"
-                    id="${book.primary_isbn13}_2"
+                    name="${book.primary_isbn10}"
+                    id="${book.title}_2"
                   />
-                  <label for="${book.primary_isbn13}_2"  class="c-option__symbol js-likeOrDislike">
+                  <label for="${book.title}_2"  class="c-option__symbol js-likeOrDislike">
                     <svg
                       class="c-option__symbol--svg"
                       version="1.1"
@@ -133,14 +138,24 @@ const showBooks = async (cat) => {
   } else {
     document.querySelector('.js-boek').classList.add('o-hide-boeken');
     document.querySelector('.js-grafiek').classList.remove('o-hide-boeken');
+    let htmlstring_grafiek =""
+    for(let categorie of cats){
+      // console.log(categorie)
+      htmlstring_grafiek += `<span class="c-grafieken">
+            <h4>${categorie}</h4>
+            <canvas class="js-${categorie} c-grafiek" width="auto" height="auto" margin="0"></canvas>
+            </span>`
+    }
+    document.querySelector('.js-grafiek').innerHTML = htmlstring_grafiek;
+    getDataPerCat();
     
   }
 };
 
 socketio.on('B2F_showLikes', function (message) {
   // console.log(message)
-  const boek = document.getElementById(message.Id);
-  // console.log(boek)
+  const boek = document.getElementById(message.BookName);
+  console.log(boek)
   boek.querySelector('.js-like').innerHTML = message.Likes;
   boek.querySelector('.js-dislike').innerHTML = message.Dislikes;
   // console.log(message.Likes + message.Dislikes)
@@ -193,14 +208,15 @@ const listenToClickDislike = () => {
     like.addEventListener('click', async function () {
       const book = like.getAttribute('for');
       const likeDislike = book.slice(-1);
-      const bookisbn13 = book.substring(0, book.length - 2);
+      const bookTitle = book.substring(0, book.length - 2);
+      console.log(bookTitle)
 
       if (likeDislike == 1) {
-        socketio.emit('F2B_add_like', { isbn_nr: bookisbn13 });
-        socketio.emit('F2B_update_likes', { isbn_nr: bookisbn13 });
+        socketio.emit('F2B_add_like', { bookName: bookTitle });
+        socketio.emit('F2B_update_likes', { bookName: bookTitle });
       } else if (likeDislike == 2) {
-        socketio.emit('F2B_add_dislike', { isbn_nr: bookisbn13 });
-        socketio.emit('F2B_update_likes', { isbn_nr: bookisbn13 });
+        socketio.emit('F2B_add_dislike', { bookName: bookTitle });
+        socketio.emit('F2B_update_likes', { bookName: bookTitle });
       }
     });
   }
@@ -224,17 +240,31 @@ const getAllLikes = function (cat) {
   handleData(backend + `/top/${cat}`, generateGraphData);
 };
 
-
+const getDataPerCat = function(){
+  for (let i of cats){
+    console.log(i)
+    getAllLikes(i)
+  }
+}
 
 
 
 const generateGraphData = async (jsonobject) => {
   console.log(jsonobject);
-  
+  console.log(jsonobject.length);
+  const labels = [];
+  const data = [];
+
+  for (let i = 0; i < jsonobject.length; i++){
+    console.log(jsonobject[i].Categorie)
+    var ctx = document.querySelector(`.js-${jsonobject[0].Categorie}`);
+    console.log(jsonobject[i].BookName)
+    labels[i] = jsonobject[i].BookName;
+    data[i] = jsonobject[i].Likes;
+  }
+  init(labels, data, ctx)
 
 
-
-  // console.log(jsonobject.length)
   // const labels = [];
   // const data = [];
   // for (let i = 0; i < 10; i++) {
@@ -245,8 +275,7 @@ const generateGraphData = async (jsonobject) => {
   // init(labels, data);
 };
 
-const init = function (labels, data) {
-  const ctx = document.querySelector('.js-graph');
+const init = function (labels, data, ctx) {
 
   chart = new Chart(ctx, {
     type: 'bar',
@@ -254,7 +283,7 @@ const init = function (labels, data) {
       labels: labels,
       datasets: [
         {
-          label: `# visitors per day`,
+          label: `Aantal likes: `,
           data: data,
           borderWidth: 1,
         },
@@ -271,6 +300,11 @@ const init = function (labels, data) {
          }
       }
       },
+      plugins: {
+        legend: {
+            display: false,
+        }
+    }
     },
   });
 

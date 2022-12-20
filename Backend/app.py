@@ -49,24 +49,24 @@ def getLikes(jsonObject):
 
 @socketio.on('F2B_add_like')
 def updateLikes(jsonObject):
-    isbn_nr = jsonObject['isbn_nr']
-    data = DataRepository.updateLike(isbn_nr)
+    bookName = jsonObject['BookName']
+    data = DataRepository.updateLike(bookName)
     print(data)
     if data > 0:
-        return jsonify(response="Likes van {0} aangepast ".format(isbn_nr)), 200
+        return jsonify(response="Likes van {0} aangepast ".format(bookName)), 200
     else:
-        return jsonify(error="Isbn {} niet gevonden".format(isbn_nr)), 404
+        return jsonify(error="Isbn {} niet gevonden".format(bookName)), 404
 
 
 @socketio.on('F2B_add_dislike')
 def updateDislikes(jsonObject):
-    isbn_nr = jsonObject['isbn_nr']
-    data = DataRepository.updateDislike(isbn_nr)
+    bookName = jsonObject['bookName']
+    data = DataRepository.updateDislike(bookName)
     print(data)
     if data > 0:
-        return jsonify(response="Dislikes van {0} aangepast ".format(isbn_nr)), 200
+        return jsonify(response="Dislikes van {0} aangepast ".format(bookName)), 200
     else:
-        return jsonify(error="Isbn {} niet gevonden".format(isbn_nr)), 404
+        return jsonify(error="Isbn {} niet gevonden".format(bookName)), 404
 
 
 
