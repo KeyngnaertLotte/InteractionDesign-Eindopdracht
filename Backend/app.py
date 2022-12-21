@@ -22,10 +22,10 @@ def initial_connection():
     print('a new client connnect')
 
 
-@app.route(endpoint + '/top/<cat>', methods=['GET'])
-def get_allLikes(cat):
+@app.route(endpoint + '/top/', methods=['GET'])
+def get_allLikes():
     if request.method == 'GET':
-        s = DataRepository.readAllLikes(cat)
+        s = DataRepository.readAllLikes()
         return jsonify(s), 200
 
 

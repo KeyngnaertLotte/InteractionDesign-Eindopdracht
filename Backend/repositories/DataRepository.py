@@ -14,10 +14,9 @@ class DataRepository:
 
     ##### BookLikes #####
     @staticmethod
-    def readAllLikes(cat):
-        sql = "Select * from bookranking where Categorie = %s order by likes desc;"
-        params = [cat]
-        result = Database.get_rows(sql, params)
+    def readAllLikes():
+        sql = "SELECT SUM(Likes) as 'TotalLikes', Categorie FROM bookranking Group By Categorie;"
+        result = Database.get_rows(sql)
         return result
     
 

@@ -39,7 +39,7 @@ CREATE TABLE `bookranking` (
 
 LOCK TABLES `bookranking` WRITE;
 /*!40000 ALTER TABLE `bookranking` DISABLE KEYS */;
-INSERT INTO `bookranking` VALUES (1668001225,1,0);
+INSERT INTO `bookranking` VALUES (1668001225,"LotteTest",1,0,"Testing");
 /*!40000 ALTER TABLE `bookranking` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
