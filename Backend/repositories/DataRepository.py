@@ -32,9 +32,9 @@ class DataRepository:
             return result
         
     @staticmethod    
-    def readUpdatedLikes(isbn):
-        sql = "SELECT * from bookranking WHERE Id = %s"
-        params = [isbn]
+    def readUpdatedLikes(title):
+        sql = "SELECT * from bookranking WHERE BookName = %s"
+        params = [title]
         result = Database.get_one_row(sql, params)
         return result 
     

@@ -27,7 +27,6 @@ const showCategorieen = async () => {
   //   for(let i = 0; i < cats.length; i++){
   //     getAllLikes(cats[i])
   //   }
-  
 };
 
 const showBooks = async (cat) => {
@@ -39,15 +38,19 @@ const showBooks = async (cat) => {
     books = [];
     let htmlstring_boek = '';
     for (let book of data.results.books) {
-      books.push(book)
+      books.push(book);
       var isbn = book.primary_isbn10;
       const title = book.title;
-      if (isbn == ""){
-        console.log(book.primary_isbn13)
+      if (isbn == '') {
+        console.log(book.primary_isbn13);
         isbn = book.primary_isbn13;
       }
-      
-      socketio.emit('F2B_get_likes', { isbn_nr: isbn, name: title, categorie: cat });
+
+      socketio.emit('F2B_get_likes', {
+        isbn_nr: isbn,
+        name: title,
+        categorie: cat,
+      });
 
       htmlstring_boek += `
 	<div class="c-boeken__boek">
@@ -134,28 +137,26 @@ const showBooks = async (cat) => {
     }
     document.querySelector('.js-boek').innerHTML = htmlstring_boek;
     listenToClickDislike();
-    
   } else {
     document.querySelector('.js-boek').classList.add('o-hide-boeken');
     document.querySelector('.js-grafiek').classList.remove('o-hide-boeken');
-    let htmlstring_grafiek =""
-    for(let categorie of cats){
+    let htmlstring_grafiek = '';
+    for (let categorie of cats) {
       // console.log(categorie)
       htmlstring_grafiek += `<span class="c-grafieken">
             <h4>${categorie}</h4>
             <canvas class="js-${categorie} c-grafiek" width="auto" height="auto" margin="0"></canvas>
-            </span>`
+            </span>`;
     }
     document.querySelector('.js-grafiek').innerHTML = htmlstring_grafiek;
     getDataPerCat();
-    
   }
 };
 
 socketio.on('B2F_showLikes', function (message) {
   // console.log(message)
   const boek = document.getElementById(message.BookName);
-  console.log(boek)
+  console.log(boek);
   boek.querySelector('.js-like').innerHTML = message.Likes;
   boek.querySelector('.js-dislike').innerHTML = message.Dislikes;
   // console.log(message.Likes + message.Dislikes)
@@ -171,7 +172,6 @@ socketio.on('B2F_showLikes', function (message) {
     line.style.setProperty('--likes-width', `${percent}%`);
   }
 });
-
 
 const listenToClickCategorie = () => {
   const buttons = document.querySelectorAll('.js-button');
@@ -209,7 +209,7 @@ const listenToClickDislike = () => {
       const book = like.getAttribute('for');
       const likeDislike = book.slice(-1);
       const bookTitle = book.substring(0, book.length - 2);
-      console.log(bookTitle)
+      console.log(bookTitle);
 
       if (likeDislike == 1) {
         socketio.emit('F2B_add_like', { bookName: bookTitle });
@@ -240,14 +240,12 @@ const getAllLikes = function (cat) {
   handleData(backend + `/top/${cat}`, generateGraphData);
 };
 
-const getDataPerCat = function(){
-  for (let i of cats){
-    console.log(i)
-    getAllLikes(i)
+const getDataPerCat = function () {
+  for (let i of cats) {
+    console.log(i);
+    getAllLikes(i);
   }
-}
-
-
+};
 
 const generateGraphData = async (jsonobject) => {
   console.log(jsonobject);
@@ -255,15 +253,14 @@ const generateGraphData = async (jsonobject) => {
   const labels = [];
   const data = [];
 
-  for (let i = 0; i < jsonobject.length; i++){
-    console.log(jsonobject[i].Categorie)
+  for (let i = 0; i < jsonobject.length; i++) {
+    console.log(jsonobject[i].Categorie);
     var ctx = document.querySelector(`.js-${jsonobject[0].Categorie}`);
-    console.log(jsonobject[i].BookName)
+    console.log(jsonobject[i].BookName);
     labels[i] = jsonobject[i].BookName;
     data[i] = jsonobject[i].Likes;
   }
-  init(labels, data, ctx)
-
+  init(labels, data, ctx);
 
   // const labels = [];
   // const data = [];
@@ -276,9 +273,8 @@ const generateGraphData = async (jsonobject) => {
 };
 
 const init = function (labels, data, ctx) {
-
   chart = new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels: labels,
       datasets: [
@@ -293,18 +289,17 @@ const init = function (labels, data, ctx) {
       scales: {
         y: {
           beginAtZero: true,
+          display: false,
         },
         x: {
-          ticks: {
-              display: false
-         }
-      }
+          display: false,
+        },
       },
       plugins: {
         legend: {
-            display: false,
-        }
-    }
+          display: false,
+        },
+      },
     },
   });
 

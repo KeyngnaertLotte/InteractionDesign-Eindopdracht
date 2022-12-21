@@ -458,8 +458,8 @@ p.c-auteur {
 
 .c-grafieken{
     height: 100%;
-    width: 50%;
-    padding: 10px;
+    width: 20%;
+    margin: 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;

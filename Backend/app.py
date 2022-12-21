@@ -41,15 +41,16 @@ def getLikes(jsonObject):
 
 @socketio.on('F2B_update_likes')
 def getLikes(jsonObject):
-    isbn_nr = jsonObject['isbn_nr']
-    insert = DataRepository.readUpdatedLikes(isbn_nr)
+    title = jsonObject['bookName']
+    insert = DataRepository.readUpdatedLikes(title)
     if insert:
         socketio.emit('B2F_showLikes', insert)
 
 
 @socketio.on('F2B_add_like')
 def updateLikes(jsonObject):
-    bookName = jsonObject['BookName']
+    bookName = jsonObject['bookName']
+    print(bookName)
     data = DataRepository.updateLike(bookName)
     print(data)
     if data > 0:
